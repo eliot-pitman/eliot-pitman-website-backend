@@ -64,16 +64,23 @@ def chat():
         
         # Parse response
         response_body = json.loads(response['body'].read())
-        ai_response = response_body.get('content', [{}])[0].get('text', 'No response generated')
+        content = response_body.get('content', [])
+        
+        # Safely extract the AI response
+        if content and len(content) > 0:
+            ai_response = content[0].get('text', 'No response generated')
+        else:
+            ai_response = 'No response generated'
         
         return {
             'response': ai_response
         }
     
     except Exception as e:
-        # Log error and return error message
+        # Log error with details for debugging
         app.log.error(f"Error calling Bedrock API: {str(e)}")
-        raise BadRequestError(f"Error processing chat request: {str(e)}")
+        # Return generic error message to client for security
+        raise BadRequestError("Unable to process chat request. Please try again later.")
 
 
 @app.route('/')
