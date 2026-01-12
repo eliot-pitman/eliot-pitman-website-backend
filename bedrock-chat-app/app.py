@@ -1,17 +1,18 @@
 from chalice import Chalice, BadRequestError
 import boto3
-from config import (
-    AWS_REGION,
-    AWS_ACCOUNT_ID,
-    KNOWLEDGE_BASE_ID,
-    MODEL_ID,
-    TEMPERATURE,
-    TOP_P,
-    MAX_TOKENS,
-    LATENCY,
-    NUM_RETRIEVAL_RESULTS,
-    STOP_SEQUENCES
-)
+import os
+
+# Configuration
+AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
+AWS_ACCOUNT_ID = os.environ.get('AWS_ACCOUNT_ID', '491891987197')
+KNOWLEDGE_BASE_ID = os.environ.get('KNOWLEDGE_BASE_ID', 'GNWDQH0467')
+MODEL_ID = os.environ.get('MODEL_ID', 'arn:aws:bedrock:us-east-1:491891987197:inference-profile/us.deepseek.r1-v1:0')
+TEMPERATURE = float(os.environ.get('TEMPERATURE', '1'))
+TOP_P = float(os.environ.get('TOP_P', '1'))
+MAX_TOKENS = int(os.environ.get('MAX_TOKENS', '2048'))
+LATENCY = os.environ.get('LATENCY', 'standard')
+NUM_RETRIEVAL_RESULTS = int(os.environ.get('NUM_RETRIEVAL_RESULTS', '5'))
+STOP_SEQUENCES = ['\nObservation']
 
 app = Chalice(app_name='bedrock-chat-app')
 

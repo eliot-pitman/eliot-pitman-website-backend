@@ -2,10 +2,10 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "Statement1",
+      "Sid": "AllBedrockActions",
       "Effect": "Allow",
-      "Action": ["bedrock:*"],
-      "Resource": ["*"]
+      "Action": ["bedrock:*", "bedrock-runtime:*", "bedrock-agent:*", "bedrock-agent-runtime:*"],
+      "Resource": "*"
     }
   ]
 }
