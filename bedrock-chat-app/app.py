@@ -1,7 +1,5 @@
 from chalice import Chalice, BadRequestError
 import boto3
-import json
-import os
 from config import (
     AWS_REGION,
     AWS_ACCOUNT_ID,
