@@ -77,17 +77,51 @@ The AWS credentials used must have permissions to retrieve and generate from Bed
 
 ```bash
 cd bedrock-chat-app
+python3 -m venv chalice-env
+source chalice-env/bin/activate
 pip install -r requirements.txt
 ```
 
 ### Local Testing
 
 ```bash
+cd bedrock-chat-app
 chalice local
 ```
 
-### Deploy
+This starts a local development server at `http://localhost:8000`
+
+### Deploy to AWS
 
 ```bash
+cd bedrock-chat-app
+
+# Configure AWS credentials
+export AWS_REGION=us-east-1
+export AWS_ACCOUNT_ID=491891987197
+export KNOWLEDGE_BASE_ID=GNWDQH0467
+export MODEL_ID=arn:aws:bedrock:us-east-1:491891987197:inference-profile/us.deepseek.r1-v1:0
+
+# Deploy
 chalice deploy
 ```
+
+After deployment, you'll receive a REST API URL. Use it to make requests:
+
+```bash
+curl -X POST https://<api-id>.execute-api.us-east-1.amazonaws.com/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "test"}'
+```
+
+#### Configuration
+
+All configuration is managed in `.chalice/config.json` and `.chalice/config-prod.json`:
+- `config.json`: Chalice deployment settings
+- `config-prod.json`: IAM policy for Lambda execution role
+
+#### Troubleshooting
+
+- **"Missing Authentication Token"**: Check that routes have `NONE` authorization in API Gateway
+- **"Access Denied" errors**: Verify IAM policy in `.chalice/config-prod.json` has all required Bedrock permissions
+- **"Module not found"**: Ensure all dependencies are in `requirements.txt` and Chalice deployment includes them
