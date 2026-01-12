@@ -2,6 +2,18 @@ from chalice import Chalice, BadRequestError
 import boto3
 import json
 import os
+from config import (
+    AWS_REGION,
+    AWS_ACCOUNT_ID,
+    KNOWLEDGE_BASE_ID,
+    MODEL_ID,
+    TEMPERATURE,
+    TOP_P,
+    MAX_TOKENS,
+    LATENCY,
+    NUM_RETRIEVAL_RESULTS,
+    STOP_SEQUENCES
+)
 
 app = Chalice(app_name='bedrock-chat-app')
 
@@ -32,36 +44,70 @@ def chat():
     if not user_message:
         raise BadRequestError("Message field is required")
     
-    # Initialize Bedrock Agent Runtime client
-    # Region can be configured via environment variable or use default
-    region = os.environ.get('AWS_REGION', 'us-east-1')
-    bedrock_agent_runtime = boto3.client(
-        service_name='bedrock-agent-runtime',
-        region_name=region
+    # Initialize Bedrock Runtime client
+    bedrock_runtime = boto3.client(
+        service_name='bedrock-runtime',
+        region_name=AWS_REGION
     )
     
-    # Knowledge base configuration - can be configured via environment variables
-    knowledge_base_id = os.environ.get('KNOWLEDGE_BASE_ID', 'GNWDQH0467')
-    model_arn = os.environ.get('MODEL_ARN', 'arn:aws:bedrock:us-east-1::foundation-model/deepseek.r1-v1:0')
+    # Initialize Bedrock Agent Runtime client for knowledge base retrieval
+    bedrock_agent_runtime = boto3.client(
+        service_name='bedrock-agent-runtime',
+        region_name=AWS_REGION
+    )
     
     try:
-        # Make API call to Bedrock Agent Runtime
-        response = bedrock_agent_runtime.retrieve_and_generate(
-            input={
-                'text': user_message
-            },
-            retrieveAndGenerateConfiguration={
-                'type': 'KNOWLEDGE_BASE',
-                'knowledgeBaseConfiguration': {
-                    'knowledgeBaseId': knowledge_base_id,
-                    'modelArn': model_arn
+        # First, retrieve relevant documents from the knowledge base
+        retrieval_results = bedrock_agent_runtime.retrieve(
+            knowledgeBaseId=KNOWLEDGE_BASE_ID,
+            retrievalConfiguration={
+                'vectorSearchConfiguration': {
+                    'numberOfResults': NUM_RETRIEVAL_RESULTS
                 }
+            },
+            retrievalQuery={
+                'text': user_message
             }
         )
         
-        # Parse response
-        output = response.get('output', {})
-        ai_response = output.get('text', 'No response generated')
+        # Extract retrieved content for context
+        context = ""
+        if 'retrievalResults' in retrieval_results:
+            for i, result in enumerate(retrieval_results['retrievalResults'], 1):
+                content = result.get('content', {}).get('text', '')
+                context += f"\n[{i}] {content}"
+        
+        # Prepare the message with context
+        full_message = f"User question: {user_message}\n\nRelevant context:\n{context}" if context else user_message
+        
+        # Make API call to Bedrock Runtime using converse
+        response = bedrock_runtime.converse(
+            modelId=MODEL_ID,
+            messages=[
+                {
+                    'role': 'user',
+                    'content': [
+                        {
+                            'text': full_message
+                        }
+                    ]
+                }
+            ],
+            inferenceConfig={
+                'temperature': TEMPERATURE
+            },
+            additionalModelRequestFields={},
+            performanceConfig={
+                'latency': LATENCY
+            }
+        )
+        
+        # Parse response from converse API
+        ai_response = 'No response generated'
+        if 'output' in response and 'message' in response['output']:
+            content = response['output']['message'].get('content', [])
+            if content and 'text' in content[0]:
+                ai_response = content[0]['text']
         
         return {
             'response': ai_response
@@ -69,9 +115,10 @@ def chat():
     
     except Exception as e:
         # Log error with details for debugging
-        app.log.error(f"Error calling Bedrock Agent Runtime API: {str(e)}")
-        # Return generic error message to client for security
-        raise BadRequestError("Unable to process chat request. Please try again later.")
+        error_message = str(e)
+        app.log.error(f"Error calling Bedrock Agent Runtime API: {error_message}")
+        # Return error details in development
+        raise BadRequestError(f"Error: {error_message}")
 
 
 @app.route('/')
