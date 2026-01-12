@@ -4,7 +4,7 @@ Welcome to my Python backend used to interact with AWS services such as Bedrock.
 
 ## Chat Endpoint
 
-The `/chat` endpoint allows you to send messages to AWS Bedrock and receive AI-generated responses.
+The `/chat` endpoint allows you to send messages to AWS Bedrock Agent Runtime and receive AI-generated responses from a knowledge base.
 
 ### Endpoint Details
 
@@ -33,11 +33,12 @@ The `/chat` endpoint allows you to send messages to AWS Bedrock and receive AI-g
 The following environment variables can be configured:
 
 - `AWS_REGION`: AWS region for Bedrock service (default: `us-east-1`)
-- `BEDROCK_MODEL_ID`: Bedrock model ID to use (default: `anthropic.claude-3-sonnet-20240229-v1:0`)
+- `KNOWLEDGE_BASE_ID`: Bedrock knowledge base ID (default: `GNWDQH0467`)
+- `MODEL_ARN`: Model ARN to use for retrieval (default: `arn:aws:bedrock:us-east-1::foundation-model/deepseek.r1-v1:0`)
 
 ### AWS Credentials
 
-This application uses boto3 to interact with AWS Bedrock. Ensure you have AWS credentials configured via:
+This application uses boto3 to interact with AWS Bedrock Agent Runtime. Ensure you have AWS credentials configured via:
 - AWS credentials file (`~/.aws/credentials`)
 - Environment variables (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`)
 - IAM role (when running on AWS infrastructure)
@@ -47,12 +48,12 @@ This application uses boto3 to interact with AWS Bedrock. Ensure you have AWS cr
 ```bash
 curl -X POST https://your-api-endpoint/chat \
   -H "Content-Type: application/json" \
-  -d '{"message": "Hello, how are you?"}'
+  -d '{"message": "What information is in my knowledge base?"}'
 ```
 
 ### Required IAM Permissions
 
-The AWS credentials used must have permissions to invoke Bedrock models:
+The AWS credentials used must have permissions to retrieve and generate from Bedrock knowledge bases:
 
 ```json
 {
@@ -61,9 +62,10 @@ The AWS credentials used must have permissions to invoke Bedrock models:
     {
       "Effect": "Allow",
       "Action": [
-        "bedrock:InvokeModel"
+        "bedrock:RetrieveAndGenerate",
+        "bedrock:Retrieve"
       ],
-      "Resource": "arn:aws:bedrock:*:*:model/*"
+      "Resource": "*"
     }
   ]
 }

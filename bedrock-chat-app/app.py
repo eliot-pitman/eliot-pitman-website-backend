@@ -9,7 +9,8 @@ app = Chalice(app_name='bedrock-chat-app')
 @app.route('/chat', methods=['POST'], cors=True)
 def chat():
     """
-    Chat endpoint that accepts user text and makes API call to AWS Bedrock.
+    Chat endpoint that accepts user text and makes API call to AWS Bedrock Agent Runtime.
+    Uses retrieve-and-generate to query a knowledge base.
     
     Expected request body:
     {
@@ -31,46 +32,36 @@ def chat():
     if not user_message:
         raise BadRequestError("Message field is required")
     
-    # Initialize Bedrock client
+    # Initialize Bedrock Agent Runtime client
     # Region can be configured via environment variable or use default
     region = os.environ.get('AWS_REGION', 'us-east-1')
-    bedrock_runtime = boto3.client(
-        service_name='bedrock-runtime',
+    bedrock_agent_runtime = boto3.client(
+        service_name='bedrock-agent-runtime',
         region_name=region
     )
     
-    # Model ID - using Claude 3 Sonnet as an example
-    # This can be configured via environment variable
-    model_id = os.environ.get('BEDROCK_MODEL_ID', 'anthropic.claude-3-sonnet-20240229-v1:0')
-    
-    # Prepare the request body for Bedrock
-    request_body = {
-        "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 1024,
-        "messages": [
-            {
-                "role": "user",
-                "content": user_message
-            }
-        ]
-    }
+    # Knowledge base configuration - can be configured via environment variables
+    knowledge_base_id = os.environ.get('KNOWLEDGE_BASE_ID', 'GNWDQH0467')
+    model_arn = os.environ.get('MODEL_ARN', 'arn:aws:bedrock:us-east-1::foundation-model/deepseek.r1-v1:0')
     
     try:
-        # Make API call to Bedrock
-        response = bedrock_runtime.invoke_model(
-            modelId=model_id,
-            body=json.dumps(request_body)
+        # Make API call to Bedrock Agent Runtime
+        response = bedrock_agent_runtime.retrieve_and_generate(
+            input={
+                'text': user_message
+            },
+            retrieveAndGenerateConfiguration={
+                'type': 'KNOWLEDGE_BASE',
+                'knowledgeBaseConfiguration': {
+                    'knowledgeBaseId': knowledge_base_id,
+                    'modelArn': model_arn
+                }
+            }
         )
         
         # Parse response
-        response_body = json.loads(response['body'].read())
-        content = response_body.get('content', [])
-        
-        # Safely extract the AI response
-        if content and len(content) > 0:
-            ai_response = content[0].get('text', 'No response generated')
-        else:
-            ai_response = 'No response generated'
+        output = response.get('output', {})
+        ai_response = output.get('text', 'No response generated')
         
         return {
             'response': ai_response
@@ -78,7 +69,7 @@ def chat():
     
     except Exception as e:
         # Log error with details for debugging
-        app.log.error(f"Error calling Bedrock API: {str(e)}")
+        app.log.error(f"Error calling Bedrock Agent Runtime API: {str(e)}")
         # Return generic error message to client for security
         raise BadRequestError("Unable to process chat request. Please try again later.")
 
