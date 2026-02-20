@@ -1,18 +1,29 @@
 # Personal Website Backend
 
-Welcome to my Python backend used to interact with AWS services such as Bedrock.
+Python backend for a chat API powered by AWS Bedrock + custom retrieval.
+
+## What Changed
+
+- Replaced Bedrock Knowledge Base retrieval with a custom SQLite vector store retrieval flow.
+- Added `scripts/build_vectors.py` to generate embeddings from local `knowledge_base/*.txt` files.
+- Added S3-backed vector DB loading in the API (`vector_store.db` is downloaded to `/tmp` in Lambda).
+- Added runtime tuning environment variables in Chalice config.
+- Added `numpy` dependency for cosine similarity scoring.
+
+## How It Works
+
+1. `scripts/build_vectors.py` reads files from `knowledge_base/`.
+2. Each file is chunked and embedded using `amazon.titan-embed-text-v2:0`.
+3. Embeddings are saved to `vector_store.db` and uploaded to S3.
+4. `/chat` embeds the user query, retrieves top matching chunks from SQLite, and sends context to Bedrock `converse`.
 
 ## Chat Endpoint
-
-The `/chat` endpoint allows you to send messages to AWS Bedrock Agent Runtime and receive AI-generated responses from a knowledge base.
-
-### Endpoint Details
 
 - **URL**: `/chat`
 - **Method**: `POST`
 - **Content-Type**: `application/json`
 
-### Request Body
+### Request
 
 ```json
 {
@@ -28,85 +39,58 @@ The `/chat` endpoint allows you to send messages to AWS Bedrock Agent Runtime an
 }
 ```
 
-### Environment Variables
+## Environment Variables
 
-The following environment variables can be configured:
+Configured in `bedrock-chat-app/.chalice/config.json` (defaults also exist in `bedrock-chat-app/app.py`):
 
-- `AWS_REGION`: AWS region for Bedrock service (default: `us-east-1`)
-- `KNOWLEDGE_BASE_ID`: Bedrock knowledge base ID (default: `GNWDQH0467`)
-- `MODEL_ARN`: Model ARN to use for retrieval (default: `arn:aws:bedrock:us-east-1::foundation-model/deepseek.r1-v1:0`)
-
-### AWS Credentials
-
-This application uses boto3 to interact with AWS Bedrock Agent Runtime. Ensure you have AWS credentials configured via:
-- AWS credentials file (`~/.aws/credentials`)
-- Environment variables (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`)
-- IAM role (when running on AWS infrastructure)
-
-### Example Usage
-
-```bash
-curl -X POST https://your-api-endpoint/chat \
-  -H "Content-Type: application/json" \
-  -d '{"message": "What information is in my knowledge base?"}'
-```
-
-### Required IAM Permissions
-
-The AWS credentials used must have permissions to retrieve and generate from Bedrock knowledge bases:
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "bedrock:RetrieveAndGenerate",
-        "bedrock:Retrieve"
-      ],
-      "Resource": "*"
-    }
-  ]
-}
-```
+- `AWS_REGION` (default: `us-east-1`)
+- `AWS_ACCOUNT_ID`
+- `MODEL_ID` (Bedrock model / inference profile ARN)
+- `TEMPERATURE`
+- `TOP_P`
+- `MAX_TOKENS`
+- `LATENCY`
+- `NUM_RETRIEVAL_RESULTS`
+- `S3_BUCKET` (stores `vector_store.db`)
 
 ## Development
 
-### Install Dependencies
+### 1) Install Dependencies
 
 ```bash
 cd bedrock-chat-app
-python3 -m venv chalice-env
-source chalice-env/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Local Testing
+### 2) Build and Upload Vector Store
+
+From the repository root:
+
+```bash
+python scripts/build_vectors.py
+```
+
+This generates `vector_store.db` and uploads it to `s3://$S3_BUCKET/vector_store.db`.
+
+### 3) Run Locally
 
 ```bash
 cd bedrock-chat-app
 chalice local
 ```
 
-This starts a local development server at `http://localhost:8000`
+Local server: `http://localhost:8000`
 
-### Deploy to AWS
+## Deploy
 
 ```bash
 cd bedrock-chat-app
-
-# Configure AWS credentials
-export AWS_REGION=us-east-1
-export AWS_ACCOUNT_ID=491891987197
-export KNOWLEDGE_BASE_ID=GNWDQH0467
-export MODEL_ID=arn:aws:bedrock:us-east-1:491891987197:inference-profile/us.deepseek.r1-v1:0
-
-# Deploy
 chalice deploy
 ```
 
-After deployment, you'll receive a REST API URL. Use it to make requests:
+After deploy:
 
 ```bash
 curl -X POST https://<api-id>.execute-api.us-east-1.amazonaws.com/api/chat \
@@ -114,14 +98,17 @@ curl -X POST https://<api-id>.execute-api.us-east-1.amazonaws.com/api/chat \
   -d '{"message": "test"}'
 ```
 
-#### Configuration
+## Required AWS Permissions
 
-All configuration is managed in `.chalice/config.json` and `.chalice/config-prod.json`:
-- `config.json`: Chalice deployment settings
-- `config-prod.json`: IAM policy for Lambda execution role
+At minimum, credentials/role should allow:
 
-#### Troubleshooting
+- Bedrock runtime model invocation (`bedrock:InvokeModel`)
+- S3 read access for Lambda to `vector_store.db` (`s3:GetObject`)
+- S3 write access for build script uploads (`s3:PutObject`)
 
-- **"Missing Authentication Token"**: Check that routes have `NONE` authorization in API Gateway
-- **"Access Denied" errors**: Verify IAM policy in `.chalice/config-prod.json` has all required Bedrock permissions
-- **"Module not found"**: Ensure all dependencies are in `requirements.txt` and Chalice deployment includes them
+## Project Structure
+
+- `bedrock-chat-app/app.py`: Chalice app and retrieval + chat logic
+- `bedrock-chat-app/.chalice/config.json`: stage config and env vars
+- `scripts/build_vectors.py`: embedding pipeline + SQLite DB creation
+- `knowledge_base/`: source `.txt` documents for retrieval
