@@ -5,12 +5,32 @@
     "dev": {
       "api_gateway_stage": "api",
       "autogen_policy": false,
-      "iam_policy_file": "config-prod.json"
+      "iam_policy_file": "config-prod.json",
+      "environment_variables": {
+        "AWS_ACCOUNT_ID": "491891987197",
+        "MODEL_ID": "arn:aws:bedrock:us-east-1:491891987197:inference-profile/us.deepseek.r1-v1:0",
+        "TEMPERATURE": "1",
+        "TOP_P": "1",
+        "MAX_TOKENS": "2048",
+        "LATENCY": "standard",
+        "NUM_RETRIEVAL_RESULTS": "5",
+        "S3_BUCKET": "vector-bucket-eliot-pitman"
+      }
     },
     "prod": {
       "api_gateway_stage": "api",
       "autogen_policy": false,
-      "iam_policy_file": "config-prod.json"
+      "iam_policy_file": "config-prod.json",
+      "environment_variables": {
+        "AWS_ACCOUNT_ID": "491891987197",
+        "MODEL_ID": "arn:aws:bedrock:us-east-1:491891987197:inference-profile/us.deepseek.r1-v1:0",
+        "TEMPERATURE": "1",
+        "TOP_P": "1",
+        "MAX_TOKENS": "2048",
+        "LATENCY": "standard",
+        "NUM_RETRIEVAL_RESULTS": "5",
+        "S3_BUCKET": "vector-bucket-eliot-pitman"
+      }
     }
   }
 }
