@@ -98,6 +98,25 @@ curl -X POST https://<api-id>.execute-api.us-east-1.amazonaws.com/api/chat \
   -d '{"message": "test"}'
 ```
 
+## Disable / Enable the Lambda
+
+Throttle the Lambda to zero concurrent executions to stop it without deleting anything:
+
+```bash
+aws lambda put-function-concurrency \
+  --function-name bedrock-chat-app-dev \
+  --reserved-concurrent-executions 0
+```
+
+Requests will return a `429` error while disabled.
+
+To re-enable:
+
+```bash
+aws lambda delete-function-concurrency \
+  --function-name bedrock-chat-app-dev
+```
+
 ## Required AWS Permissions
 
 At minimum, credentials/role should allow:
