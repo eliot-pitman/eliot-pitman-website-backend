@@ -1,0 +1,45 @@
+ELIOT PITMAN
+Chicago, IL | (419) 519-2819 | EliotPitman@gmail.com | LinkedIn | GitHub | EliotPitman.com
+SOFTWARE ENGINEER
+Results-driven Software Engineer with 4+ years of experience building and maintaining enterprise-scale developer platforms and cloud infrastructure. Proven track record in platform engineering, site reliability, and leading cross-functional teams to deliver self-service solutions that enhance developer productivity. Specializes in Kubernetes orchestration, CI/CD automation, and cloud-native application development.
+TECHNICAL SKILLS
+Languages & Frameworks: TypeScript, JavaScript, Python, Ruby, Rails, React.js, Vue.js, Express
+Cloud & Infrastructure: AWS (RDS, S3, IAM), Kubernetes, Docker, Helm, ArgoCD, Crossplane, Kyverno
+DevOps & CI/CD: Jenkins, Harness, GitHub Actions, Infrastructure as Code (IaC)
+Observability & Monitoring: Dynatrace, Site Reliability Engineering (SRE) practices
+Databases: PostgreSQL, AWS RDS
+Developer Tools: Git, GitHub, Backstage, AI-assisted development (GitHub Copilot, MCP)
+Practices: Microservices Architecture, RESTful APIs, Unit Testing, Pair Programming, Agile/Scrum
+PROFESSIONAL EXPERIENCE
+Booz Allen Hamilton | Software Engineer August 2022 - Present
+Developer Platform Engineering
+Architected and maintained an enterprise developer portal serving multiple development teams, managing day-to-day operations with Kubernetes orchestration and ArgoCD deployment strategies
+Engineered self-service platform capabilities enabling automated application provisioning, deployment pipelines, and infrastructure management, reducing onboarding time for new applications
+Developed Infrastructure as Code (IaC) solutions using Crossplane to automate platform resource provisioning, integrated with Kyverno policy enforcement and RBAC for secure, compliant deployments
+Built and maintained CI/CD pipelines in Jenkins and Harness, implementing health checks and automated updates to ensure pipeline reliability
+Created custom Helm charts for standardized Kubernetes deployments, establishing deployment best practices across the organization
+Full-Stack Development
+Developed frontend features using TypeScript and React with comprehensive unit test coverage and adherence to design system standards
+Designed and implemented backend services with RESTful APIs, authentication middleware, and integration with external services including GitHub, Jira, and Slack APIs
+Built and maintained PostgreSQL databases in AWS RDS, designing schema updates and migrations to support new plugin architectures
+            
+AI & Innovation
+Pioneered integration of AI-assisted development tools into the platform, implementing Model Context Protocol (MCP) and establishing best practices for context-aware LLM usage
+Developed an innovative developer portal feature integrating GitHub Copilot for automated application updates and Backstage TechDocs generation, improving documentation quality and consistency
+Site Reliability & Observability
+Implemented comprehensive monitoring solutions using Dynatrace, writing and maintaining synthetic tests and SLO dashboards to ensure platform health
+Established SRE practices including incident response procedures, post-mortem analysis, and reliability metrics tracking
+Cloud Infrastructure & Security
+Managed AWS cloud resources including RDS databases, S3 buckets, and IAM policies, executing database migrations and optimizing cloud infrastructure costs
+Implemented security best practices for cloud resource management and access control Technical Leadership
+Served as Technical Lead for the platform portal team (1 year), managing 2-4 developers and providing technical direction aligned with client objectives
+Led multiple quarter-long initiatives requiring cross-team collaboration, coordinating with stakeholders across engineering, security, and operations teams
+Mentored junior developers for one year at Develop Carolina on technical assignment, development best practices, and platform engineering principles
+EDUCATION & TRAINING
+Develop Carolina | Software Engineer Apprentice August – December 2022
+Intensive 6-month cohort program with workshops and one-on-one mentorship from industry professionals
+Curriculum: Product Lifecycle, DevOps Tooling, Automated Testing, Clean Code, Infrastructure, Security, Monitoring, Operations, and System Architecture
+Actualize Coding Bootcamp | Certificate in Full-Stack Web Development January – May 2022
+Comprehensive training in full-stack development covering project architecture, backend/frontend development, and self-directed learning strategies
+Hands-on experience with RESTful API design, database integration, and modern web development frameworks
+College of the Ozarks | Bachelor of Science in History Graduated December 2020 | GPA: 3.8/4.0
