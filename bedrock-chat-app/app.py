@@ -22,9 +22,22 @@ app = Chalice(app_name='bedrock-chat-app')
 # --- Retrieval helpers ---
 
 def get_db():
-    if not os.path.exists(DB_LOCAL_PATH):
-        app.log.info("Downloading vector store from S3...")
-        boto3.client("s3").download_file(S3_BUCKET, "vector_store.db", DB_LOCAL_PATH)
+    s3 = boto3.client("s3")
+    
+    # Check the last modified date of the S3 file
+    meta = s3.head_object(Bucket=S3_BUCKET, Key="vector_store.db")
+    last_modified = str(meta["LastModified"])
+    
+    # Store the timestamp alongside the db
+    timestamp_path = "/tmp/vector_store_timestamp.txt"
+    cached_timestamp = open(timestamp_path).read() if os.path.exists(timestamp_path) else ""
+
+    # Only re-download if the S3 file has changed
+    if last_modified != cached_timestamp or not os.path.exists(DB_LOCAL_PATH):
+        app.log.info("Downloading updated vector store from S3...")
+        s3.download_file(S3_BUCKET, "vector_store.db", DB_LOCAL_PATH)
+        open(timestamp_path, "w").write(last_modified)
+
     return sqlite3.connect(DB_LOCAL_PATH)
 
 def embed_text(text):
@@ -80,6 +93,13 @@ def chat():
         # Call Bedrock
         response = bedrock_runtime.converse(
             modelId=MODEL_ID,
+            system=[
+                {
+                    'text': """You are a helpful assistant. Be friendly and conversational.Answer questions using only the provided context.
+        Be concise and direct. Keep responses to 2-3 sentences unless more detail is clearly needed.
+        If the answer is not in the context, say you don't know."""
+                }
+            ],
             messages=[
                 {
                     'role': 'user',
