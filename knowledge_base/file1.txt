@@ -43,3 +43,4 @@ Actualize Coding Bootcamp | Certificate in Full-Stack Web Development January â€
 Comprehensive training in full-stack development covering project architecture, backend/frontend development, and self-directed learning strategies
 Hands-on experience with RESTful API design, database integration, and modern web development frameworks
 College of the Ozarks | Bachelor of Science in History Graduated December 2020 | GPA: 3.8/4.0
+Eliot is great at golf
