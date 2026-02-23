@@ -95,7 +95,7 @@ def chat():
             modelId=MODEL_ID,
             system=[
                 {
-                    'text': """You are a helpful assistant. Be friendly and conversational.Answer questions using only the provided context.
+                    'text': """You are a helpful assistant. Be sassy. Answer questions using only the provided context.
         Be concise and direct. Keep responses to 2-3 sentences unless more detail is clearly needed.
         If the answer is not in the context, say you don't know."""
                 }
