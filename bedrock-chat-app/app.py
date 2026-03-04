@@ -4,6 +4,8 @@ import os
 import sqlite3
 import json
 import numpy as np
+import uuid
+from datetime import datetime
 
 # Configuration
 AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
@@ -23,11 +25,11 @@ app = Chalice(app_name='bedrock-chat-app')
 
 def get_db():
     s3 = boto3.client("s3")
-    
+
     # Check the last modified date of the S3 file
     meta = s3.head_object(Bucket=S3_BUCKET, Key="vector_store.db")
     last_modified = str(meta["LastModified"])
-    
+
     # Store the timestamp alongside the db
     timestamp_path = "/tmp/vector_store_timestamp.txt"
     cached_timestamp = open(timestamp_path).read() if os.path.exists(timestamp_path) else ""
@@ -63,6 +65,26 @@ def retrieve(query, top_k=NUM_RETRIEVAL_RESULTS):
     )
     return scored[:top_k]
 
+# --- Logging helper ---
+
+def log_conversation(user_message, bot_response):
+    try:
+        s3 = boto3.client("s3")
+        timestamp = datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%S")
+        key = f"conversations/{timestamp}_{uuid.uuid4().hex[:8]}.json"
+        s3.put_object(
+            Bucket=S3_BUCKET,
+            Key=key,
+            Body=json.dumps({
+                "timestamp": timestamp,
+                "user_message": user_message,
+                "bot_response": bot_response
+            }),
+            ContentType="application/json"
+        )
+    except Exception as e:
+        app.log.error(f"Failed to log conversation: {str(e)}")
+
 
 @app.route('/chat', methods=['POST'], cors=True)
 def chat():
@@ -95,9 +117,9 @@ def chat():
             modelId=MODEL_ID,
             system=[
                 {
-                    'text': """You are a helpful assistant. Be sassy.  Answer questions using only the provided context.
-        Be concise and direct. Keep responses to 2-3 sentences unless more detail is clearly needed.
-        If the answer is not in the context, say you don't know."""
+                    'text': """You are a helpful assistant. Answer questions using only the provided context.
+Be concise and direct. Keep responses to 2-3 sentences unless more detail is clearly needed.
+If the answer is not in the context, say you don't know."""
                 }
             ],
             messages=[
@@ -121,6 +143,9 @@ def chat():
             content = response['output']['message'].get('content', [])
             if content and 'text' in content[0]:
                 ai_response = content[0]['text']
+
+        # Log conversation to S3
+        log_conversation(user_message, ai_response)
 
         return {'response': ai_response}
 
