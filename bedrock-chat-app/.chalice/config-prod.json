@@ -6,6 +6,12 @@
       "Effect": "Allow",
       "Action": ["bedrock:*", "bedrock-runtime:*", "bedrock-agent:*", "bedrock-agent-runtime:*"],
       "Resource": "*"
+    },
+    {
+      "Sid": "S3VectorStore",
+      "Effect": "Allow",
+      "Action": ["s3:GetObject", "s3:PutObject"],
+      "Resource": "arn:aws:s3:::vector-bucket-eliot-pitman/*"
     }
   ]
 }
